@@ -1,0 +1,46 @@
+# Secrets — never commit real credentials
+.env
+**/.env
+*.jks
+*.keystore
+key.properties
+**/key.properties
+google-services.json
+**/GoogleService-Info.plist
+
+# Local Flutter/Android caches (repo root copies)
+.pub-cache/
+.gradle/
+**/.gradle/
+**/local.properties
+
+# Flutter / Dart
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.pub/
+**/build/
+**/coverage/
+
+# Release binaries (rebuild from source)
+*.apk
+*.aab
+*.ipa
+*.symbols
+*.map.json
+
+# IDE / OS
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+*.swp
+.history/
+.vscode/
+
+# Android Studio build outputs
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+**/captures/

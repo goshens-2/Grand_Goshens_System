@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="goshens_navy">#FF03045E</color>
+    <color name="goshens_cyan">#FF00B4D8</color>
+    <color name="goshens_mist">#FFF3F8FB</color>
+	<color name="ic_launcher_background">#03045E</color>
+</resources>
