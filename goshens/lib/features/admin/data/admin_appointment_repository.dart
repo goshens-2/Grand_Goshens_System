@@ -149,7 +149,14 @@ class AdminAppointmentRepository {
       updates['dentist_response'] = note;
     }
     if (status == 'checked_in') {
-      updates['check_in_at'] = DateTime.now().toUtc().toIso8601String();
+      final current = await _supabase
+          .from('appointments')
+          .select('check_in_at')
+          .eq('id', id)
+          .maybeSingle();
+      if (current?['check_in_at'] == null) {
+        updates['check_in_at'] = DateTime.now().toUtc().toIso8601String();
+      }
     }
     if (status == 'completed') {
       updates['completed_at'] = DateTime.now().toUtc().toIso8601String();

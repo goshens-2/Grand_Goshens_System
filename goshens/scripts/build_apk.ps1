@@ -25,8 +25,8 @@ $localProperties = Join-Path $projectRoot "android\local.properties"
     "sdk.dir=$($env:ANDROID_SDK_ROOT -replace '\\','\\')"
     "flutter.sdk=$($flutterSdk -replace '\\','\\')"
     "flutter.buildMode=release"
-    "flutter.versionName=1.0.0"
-    "flutter.versionCode=2"
+    "flutter.versionName=1.0.2"
+    "flutter.versionCode=5"
 ) | Set-Content -Path $localProperties -Encoding ASCII
 
 Set-Location $projectRoot
@@ -34,7 +34,7 @@ Write-Host "Generating launcher icons..."
 & $flutter pub get
 & $flutter pub run flutter_launcher_icons
 Write-Host "Building release APK..."
-& $flutter build apk --release --no-deferred-components
+& $flutter build apk --release
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 Write-Host "APK ready:"
 Get-ChildItem "$projectRoot\build\app\outputs\flutter-apk\*.apk" | Select-Object FullName, Length, LastWriteTime

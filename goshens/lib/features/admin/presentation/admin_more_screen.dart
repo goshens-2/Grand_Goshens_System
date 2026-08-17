@@ -43,6 +43,12 @@ class AdminMoreScreen extends ConsumerWidget {
           const SizedBox(height: 20),
           const SectionHeader('Operations'),
           MenuTile(
+            icon: Icons.insights_outlined,
+            title: 'Analytics',
+            subtitle: 'Visits, patients and clinic statistics',
+            onTap: () => context.pushNamed(RouteNames.adminAnalytics),
+          ),
+          MenuTile(
             icon: Icons.schedule,
             title: 'Availability',
             subtitle: 'Working hours and exceptions',

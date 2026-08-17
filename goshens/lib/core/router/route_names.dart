@@ -36,4 +36,5 @@ class RouteNames {
   static const patientServiceDetail = 'patient_service_detail';
   static const adminComments = 'admin_comments';
   static const adminChats = 'admin_chats';
+  static const adminAnalytics = 'admin_analytics';
 }

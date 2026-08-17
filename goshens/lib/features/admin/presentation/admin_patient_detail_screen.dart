@@ -68,6 +68,9 @@ class _AdminPatientDetailScreenState extends ConsumerState<AdminPatientDetailScr
           final profile = Map<String, dynamic>.from(data['profile'] as Map);
           final appointments = List.from(data['appointments'] as List? ?? []);
           final prescriptions = List.from(data['prescriptions'] as List? ?? []);
+          final visitCount = appointments.where((row) {
+            return row is Map && row['check_in_at'] != null;
+          }).length;
           final avatarUrl = ref.read(profileRepositoryProvider).publicAvatarUrl(profile['avatar_path'] as String?);
           final name = profile['full_name'] as String? ?? 'Unknown';
 
@@ -101,6 +104,11 @@ class _AdminPatientDetailScreenState extends ConsumerState<AdminPatientDetailScr
                           const SizedBox(height: 2),
                           Text(profile['email'], style: TextStyle(color: AppColors.muted(context))),
                         ],
+                        const SizedBox(height: 8),
+                        Text(
+                          visitCount == 1 ? '1 clinic visit' : '$visitCount clinic visits',
+                          style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.ink(context)),
+                        ),
                         const SizedBox(height: 18),
                         Row(
                           children: [

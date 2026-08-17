@@ -37,6 +37,7 @@ import '../../features/patient/presentation/account_settings_screen.dart';
 import '../../features/patient/presentation/patient_services_screen.dart';
 import '../../features/patient/presentation/service_detail_screen.dart';
 import '../../features/admin/presentation/admin_comments_screen.dart';
+import '../../features/admin/presentation/admin_analytics_screen.dart';
 import '../../features/chat/presentation/admin_chat_inbox_screen.dart';
 
 part 'app_router.g.dart';
@@ -287,6 +288,11 @@ GoRouter appRouter(AppRouterRef ref) {
         path: '/admin-comments',
         name: RouteNames.adminComments,
         builder: (context, state) => const AdminCommentsScreen(),
+      ),
+      GoRoute(
+        path: '/admin-analytics',
+        name: RouteNames.adminAnalytics,
+        builder: (context, state) => const AdminAnalyticsScreen(),
       ),
       GoRoute(
         path: '/privacy-information',
