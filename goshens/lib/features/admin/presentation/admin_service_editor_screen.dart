@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../patient/data/service_visuals.dart';
 import '../data/admin_service_repository.dart';
 
 class AdminServiceEditorScreen extends ConsumerStatefulWidget {
@@ -26,7 +25,6 @@ class _AdminServiceEditorScreenState extends ConsumerState<AdminServiceEditorScr
   late TextEditingController _durationController;
   bool _isPublished = true;
   bool _isLoading = false;
-  String _iconName = 'medical_services';
   String? _serviceId;
   final List<String> _imagePaths = [];
 
@@ -37,9 +35,8 @@ class _AdminServiceEditorScreenState extends ConsumerState<AdminServiceEditorScr
     _descController = TextEditingController(text: widget.service?['description'] ?? '');
     _durationController = TextEditingController(text: widget.service?['estimated_duration_minutes']?.toString() ?? '30');
     _isPublished = widget.service?['is_published'] ?? true;
-    _iconName = widget.service?['icon_name'] as String? ?? 'medical_services';
     _serviceId = widget.service?['id'] as String?;
-    _imagePaths.addAll(serviceImagePaths(widget.service ?? {}));
+    _imagePaths.addAll(_serviceImagePaths(widget.service ?? {}));
   }
 
   @override
@@ -48,6 +45,21 @@ class _AdminServiceEditorScreenState extends ConsumerState<AdminServiceEditorScr
     _descController.dispose();
     _durationController.dispose();
     super.dispose();
+  }
+
+  List<String> _serviceImagePaths(Map<String, dynamic> service) {
+    final paths = <String>[];
+    final raw = service['image_paths'];
+    if (raw is List) {
+      for (final item in raw) {
+        if (item is String && item.trim().isNotEmpty) paths.add(item.trim());
+      }
+    }
+    final cover = service['image_path'] as String?;
+    if (cover != null && cover.trim().isNotEmpty && !paths.contains(cover.trim())) {
+      paths.insert(0, cover.trim());
+    }
+    return paths;
   }
 
   Future<void> _pickImages() async {
@@ -67,7 +79,6 @@ class _AdminServiceEditorScreenState extends ConsumerState<AdminServiceEditorScr
             description: _descController.text.trim().isEmpty ? 'Description coming soon.' : _descController.text.trim(),
             duration: int.tryParse(_durationController.text) ?? 30,
             isPublished: false,
-            iconName: _iconName,
             imagePaths: _imagePaths,
           );
       _serviceId = serviceId;
@@ -87,7 +98,6 @@ class _AdminServiceEditorScreenState extends ConsumerState<AdminServiceEditorScr
             description: _descController.text.trim().isEmpty ? 'Description coming soon.' : _descController.text.trim(),
             duration: int.tryParse(_durationController.text) ?? 30,
             isPublished: _isPublished,
-            iconName: _iconName,
             imagePaths: _imagePaths,
           );
       if (mounted) setState(() {});
@@ -114,7 +124,6 @@ class _AdminServiceEditorScreenState extends ConsumerState<AdminServiceEditorScr
               description: _descController.text.trim(),
               duration: int.tryParse(_durationController.text) ?? 30,
               isPublished: _isPublished,
-              iconName: _iconName,
               imagePaths: _imagePaths,
             );
       } else {
@@ -124,7 +133,6 @@ class _AdminServiceEditorScreenState extends ConsumerState<AdminServiceEditorScr
               description: _descController.text.trim(),
               duration: int.tryParse(_durationController.text) ?? 30,
               isPublished: _isPublished,
-              iconName: _iconName,
               imagePaths: _imagePaths,
             );
       }
@@ -174,28 +182,6 @@ class _AdminServiceEditorScreenState extends ConsumerState<AdminServiceEditorScr
                 decoration: const InputDecoration(labelText: 'Estimated Duration (minutes)'),
                 keyboardType: TextInputType.number,
                 validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: kServiceIconChoices.containsKey(_iconName) ? _iconName : 'medical_services',
-                decoration: const InputDecoration(labelText: 'Icon'),
-                items: kServiceIconChoices.entries
-                    .map(
-                      (entry) => DropdownMenuItem(
-                        value: entry.key,
-                        child: Row(
-                          children: [
-                            Icon(iconForService(entry.key), color: AppColors.ink(context)),
-                            const SizedBox(width: 12),
-                            Text(entry.value),
-                          ],
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) setState(() => _iconName = value);
-                },
               ),
               const SizedBox(height: 20),
               Text('Service images', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
