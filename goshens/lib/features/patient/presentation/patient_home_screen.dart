@@ -26,6 +26,7 @@ class PatientHomeScreen extends ConsumerStatefulWidget {
 
 class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
   final _searchController = TextEditingController();
+  var _pairIndex = 0;
 
   @override
   void dispose() {
@@ -58,215 +59,198 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(24.0),
             child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Row(
-                children: [
-                  const GoshensLogo(size: 40),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: FutureBuilder(
-                    future: profileAsync,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircleAvatar(
-                          radius: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        );
-                      }
-                      final profile = snapshot.data;
-                      final name = profile?['full_name'] ?? 'Guest';
-                      final initial = name.isNotEmpty ? name[0].toUpperCase() : 'G';
-                      final avatarUrl = ref.read(profileRepositoryProvider)
-                          .publicAvatarUrl(profile?['avatar_path'] as String?);
-                      
-                      return Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => context.pushNamed(RouteNames.patientProfileSetup),
-                            child: CircleAvatar(
-                              radius: 22,
-                              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                              backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
-                              child: avatarUrl == null
-                                  ? Text(
-                                      initial,
-                                      style: TextStyle(
-                                        color: AppColors.ink(context),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                      ),
-                                    )
-                                  : null,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Welcome back',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: AppColors.muted(context),
-                                      ),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    const GoshensLogo(size: 40),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: FutureBuilder(
+                        future: profileAsync,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const CircleAvatar(
+                              radius: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            );
+                          }
+                          final profile = snapshot.data;
+                          final name = profile?['full_name'] ?? 'Guest';
+                          final initial = name.isNotEmpty ? name[0].toUpperCase() : 'G';
+                          final avatarUrl = ref.read(profileRepositoryProvider)
+                              .publicAvatarUrl(profile?['avatar_path'] as String?);
+                          
+                          return Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () => context.pushNamed(RouteNames.patientProfileSetup),
+                                child: CircleAvatar(
+                                  radius: 22,
+                                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                                  backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                                  child: avatarUrl == null
+                                      ? Text(
+                                          initial,
+                                          style: TextStyle(
+                                            color: AppColors.ink(context),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                          ),
+                                        )
+                                      : null,
                                 ),
-                                Text(
-                                  name.split(' ')[0],
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                        color: AppColors.ink(context),
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Welcome back',
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            color: AppColors.muted(context),
+                                          ),
+                                    ),
+                                    Text(
+                                      name.split(' ')[0],
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                            color: AppColors.ink(context),
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  ),
-                  Row(
-                    children: [
-                      Consumer(
-                        builder: (context, ref, child) {
-                          final count = ref.watch(unreadNotificationCountProvider);
-                          return IconButton(
-                            icon: Badge(
-                              isLabelVisible: count > 0,
-                              label: Text(count.toString()),
-                              child: Icon(Icons.notifications_outlined, color: AppColors.ink(context)),
-                            ),
-                            onPressed: () {
-                              DeviceNotifications.instance.initialize();
-                              context.pushNamed(RouteNames.notifications);
-                            },
+                              ),
+                            ],
                           );
                         },
                       ),
-                      IconButton(
-                        icon: Icon(Icons.chat_bubble_outline, color: AppColors.ink(context)),
-                        onPressed: () => context.pushNamed(RouteNames.patientChat),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-
-              // Upcoming Appointment Card
-              upcomingApptAsync.when(
-                data: (appt) {
-                  if (appt == null) {
-                    return _buildEmptyAppointmentCard(context);
-                  }
-                  return _buildUpcomingAppointmentCard(context, appt);
-                },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Text('Error loading appointment: $e'),
-              ),
-              
-              const SizedBox(height: 32),
-              TextField(
-                controller: _searchController,
-                onChanged: (_) => setState(() {}),
-                onSubmitted: (value) {
-                  context.pushNamed(
-                    RouteNames.patientServices,
-                    extra: {'query': value.trim()},
-                  );
-                },
-                decoration: InputDecoration(
-                  hintText: 'Search available services',
-                  prefixIcon: Icon(Icons.search, color: AppColors.ink(context)),
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: BorderSide(color: AppColors.hairline(context)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: const BorderSide(color: AppColors.primary, width: 1.6),
-                  ),
+                    ),
+                    Row(
+                      children: [
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final count = ref.watch(unreadNotificationCountProvider);
+                            return IconButton(
+                              icon: Badge(
+                                isLabelVisible: count > 0,
+                                label: Text(count.toString()),
+                                child: Icon(Icons.notifications_outlined, color: AppColors.ink(context)),
+                              ),
+                              onPressed: () {
+                                DeviceNotifications.instance.initialize();
+                                context.pushNamed(RouteNames.notifications);
+                              },
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.chat_bubble_outline, color: AppColors.ink(context)),
+                          onPressed: () => context.pushNamed(RouteNames.patientChat),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 20),
-              servicesAsync.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (error, _) => Text('Could not load services.\n$error'),
-                data: (services) {
-                  final matches = query.isEmpty
-                      ? services
-                      : services.where((service) {
-                          final name = (service['name'] as String? ?? '').toLowerCase();
-                          final description = (service['description'] as String? ?? '').toLowerCase();
-                          return name.contains(query) || description.contains(query);
-                        }).toList();
+                const SizedBox(height: 32),
 
-                  if (query.isNotEmpty) {
-                    if (matches.isEmpty) {
-                      return Text('No matching services.', style: TextStyle(color: AppColors.muted(context)));
+                // Upcoming Appointment Card
+                upcomingApptAsync.when(
+                  data: (appt) {
+                    if (appt == null) {
+                      return _buildEmptyAppointmentCard(context);
                     }
-                    return Column(
-                      children: matches.take(6).map((service) {
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: CircleAvatar(
-                            backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                            child: Icon(Icons.medical_services_outlined, color: AppColors.ink(context)),
-                          ),
-                          title: Text(service['name'] ?? '', style: TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text(
-                            service['description'] ?? '',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          onTap: () => context.pushNamed(RouteNames.patientServiceDetail, extra: service),
-                        );
-                      }).toList(),
+                    return _buildUpcomingAppointmentCard(context, appt);
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => Text('Error loading appointment: $e'),
+                ),
+                
+                const SizedBox(height: 32),
+                TextField(
+                  controller: _searchController,
+                  onChanged: (_) => setState(() {}),
+                  onSubmitted: (value) {
+                    context.pushNamed(
+                      RouteNames.patientServices,
+                      extra: {'query': value.trim()},
                     );
-                  }
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search available services',
+                    prefixIcon: Icon(Icons.search, color: AppColors.ink(context)),
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.surface,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18),
+                      borderSide: BorderSide(color: AppColors.hairline(context)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 1.6),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                servicesAsync.when(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (error, _) => Text('Could not load services.\n$error'),
+                  data: (services) {
+                    final matches = query.isEmpty
+                        ? services
+                        : services.where((service) {
+                            final name = (service['name'] as String? ?? '').toLowerCase();
+                            final description = (service['description'] as String? ?? '').toLowerCase();
+                            return name.contains(query) || description.contains(query);
+                          }).toList();
 
-                  return RotatingServiceCards(services: matches);
-                },
-              ),
-              const SizedBox(height: 32),
-              const SectionHeader('What patients say'),
-              commentsAsync.when(
-                loading: () => const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator())),
-                error: (error, _) => Text('Comments will appear here after approval.\n$error', style: TextStyle(color: AppColors.muted(context))),
-                data: (comments) {
-                  if (comments.isEmpty) {
-                    return Text(
-                      'Approved patient comments will show here.',
-                      style: TextStyle(color: AppColors.muted(context)),
-                    );
-                  }
-                  return Column(
-                    children: comments.map((comment) => HomeCommentTile(comment: comment)).toList(),
-                  );
-                },
-              ),
-              const SizedBox(height: 32),
-              
-              // Clinic Info
-              clinicAsync.when(
-                data: (clinic) {
-                  if (clinic == null) return const SizedBox.shrink();
-                  return _buildClinicInfoCard(context, clinic);
-                },
-                loading: () => const SizedBox.shrink(),
-                error: (e, _) => const SizedBox.shrink(),
-              ),
-            ],
+                    if (query.isNotEmpty) {
+                      if (matches.isEmpty) {
+                        return Text('No matching services.', style: TextStyle(color: AppColors.muted(context)));
+                      }
+                      return Column(
+                        children: matches.take(6).map((service) {
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: CircleAvatar(
+                              backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                              child: Icon(Icons.medical_services_outlined, color: AppColors.ink(context)),
+                            ),
+                            title: Text(service['name'] ?? '', style: TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text(
+                              service['description'] ?? '',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            onTap: () => context.pushNamed(RouteNames.patientServiceDetail, extra: service),
+                          );
+                        }).toList(),
+                      );
+                    }
+
+                    return _RotatingServicesWithComments(services: matches);
+                  },
+                ),
+                const SizedBox(height: 32),
+                
+                // Clinic Info
+                clinicAsync.when(
+                  data: (clinic) {
+                    if (clinic == null) return const SizedBox.shrink();
+                    return _buildClinicInfoCard(context, clinic);
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (e, _) => const SizedBox.shrink(),
+                ),
+              ],
+            ),
           ),
-        ),
         ),
       ),
     );
@@ -460,6 +444,86 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RotatingServicesWithComments extends ConsumerStatefulWidget {
+  const _RotatingServicesWithComments({required this.services});
+
+  final List<Map<String, dynamic>> services;
+
+  @override
+  ConsumerState<_RotatingServicesWithComments> createState() => _RotatingServicesWithCommentsState();
+}
+
+class _RotatingServicesWithCommentsState extends ConsumerState<_RotatingServicesWithComments> {
+  var _pairIndex = 0;
+
+  List<List<Map<String, dynamic>>> get _pairs {
+    final pairs = <List<Map<String, dynamic>>>[];
+    for (var i = 0; i < widget.services.length; i += 2) {
+      pairs.add(widget.services.sublist(i, i + 2 > widget.services.length ? widget.services.length : i + 2));
+    }
+    return pairs;
+  }
+
+  List<String> get _currentServiceIds {
+    final pairs = _pairs;
+    if (pairs.isEmpty) return [];
+    final pair = pairs[_pairIndex % pairs.length];
+    return pair.map((s) => s['id'] as String).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        RotatingServiceCards(
+          services: widget.services,
+          onPairChange: (index) => setState(() => _pairIndex = index),
+        ),
+        const SizedBox(height: 32),
+        const SectionHeader('What patients say'),
+        const SizedBox(height: 12),
+        _buildCommentsForCurrentPair(),
+      ],
+    );
+  }
+
+  Widget _buildCommentsForCurrentPair() {
+    final commentsAsync = ref.watch(approvedHomeCommentsProvider);
+    final currentServiceIds = _currentServiceIds;
+
+    return commentsAsync.when(
+      loading: () => const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator())),
+      error: (error, _) => Text('Comments will appear here after approval.\n$error', style: TextStyle(color: AppColors.muted(context))),
+      data: (allComments) {
+        // Filter comments for current service pair
+        final pairComments = allComments.where((comment) {
+          final serviceId = comment['service_id'] as String?;
+          return serviceId != null && currentServiceIds.contains(serviceId);
+        }).toList();
+
+        if (pairComments.isEmpty) {
+          return Text(
+            'Approved patient comments will show here.',
+            style: TextStyle(color: AppColors.muted(context)),
+          );
+        }
+
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 500),
+          child: Column(
+            key: ValueKey(currentServiceIds.join(',')),
+            children: pairComments.map((comment) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: HomeCommentTile(comment: comment),
+            )).toList(),
+          ),
+        );
+      },
     );
   }
 }
