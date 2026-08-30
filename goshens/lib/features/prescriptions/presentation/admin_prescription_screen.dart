@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -9,6 +10,7 @@ import '../../patient/data/clinic_repository.dart';
 import '../../patient/data/profile_repository.dart';
 import '../data/pdf_service.dart';
 import '../data/prescription_repository.dart';
+import '../domain/prescription.dart';
 
 class AdminPrescriptionScreen extends ConsumerStatefulWidget {
   const AdminPrescriptionScreen({super.key, this.patientContext});
@@ -330,7 +332,7 @@ class _AdminPrescriptionScreenState extends ConsumerState<AdminPrescriptionScree
 
   Widget _buildExistingTab() {
     return FutureBuilder<List<Prescription>>(
-      future: ref.read(prescriptionRepositoryProvider).getAllPrescriptions(),
+      future: ref.read(prescriptionRepositoryProvider).getPatientPrescriptions(''),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
