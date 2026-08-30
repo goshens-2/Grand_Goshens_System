@@ -6,15 +6,15 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Goshens Dental Care - Creating Perfect Smiles">
+  <meta name="description" content="Goshen Dental Care - Creating Perfect Smiles">
 
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Goshens Dental Care">
+  <meta name="apple-mobile-web-app-title" content="Goshen Dental Care">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>Goshens Dental Care</title>
+  <title>Goshen Dental Care</title>
   <link rel="manifest" href="manifest.json">
 
   <style>
@@ -49,22 +49,30 @@
       to { transform: rotate(360deg); }
     }
 
+    #loading strong {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    #loading span {
+      font-size: 14px;
+      color: #4b7c99;
+    }
+
     #error {
       display: none;
-      max-width: 520px;
-      margin: 40px auto;
       padding: 24px;
-      background: #fff;
-      border: 1px solid #f5c2c7;
-      border-radius: 12px;
-      color: #842029;
+      color: #d32f2f;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
     }
   </style>
 </head>
 <body>
   <div id="loading">
     <div class="spinner"></div>
-    <strong>Goshens Dental Care</strong>
+    <strong>Goshen Dental Care</strong>
     <span>Loading app...</span>
   </div>
   <div id="error"></div>

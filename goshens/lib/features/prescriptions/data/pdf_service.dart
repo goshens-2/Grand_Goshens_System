@@ -18,7 +18,7 @@ class PdfService {
     try {
       final pdf = pw.Document();
 
-      // Load Goshens Logo if possible
+      // Load Goshen Logo if possible
       pw.Widget? logoWidget;
       try {
         final ByteData bytes = await rootBundle.load('assets/images/Goshens_logo.png');
@@ -44,7 +44,7 @@ class PdfService {
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text('GOSHENS DENTAL CARE', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                        pw.Text('GOSHEN DENTAL CARE', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
                         pw.Text('Creating Perfect Smiles', style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700)),
                         pw.SizedBox(height: 5),
                         pw.Text('Kampala, Uganda', style: const pw.TextStyle(fontSize: 12)),
@@ -76,7 +76,7 @@ class PdfService {
                 pw.Divider(color: PdfColors.blueGrey),
                 pw.SizedBox(height: 10),
                 pw.Center(
-                  child: pw.Text('Thank you for choosing Goshens Dental Care.', style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.italic, color: PdfColors.grey700)),
+                  child: pw.Text('Thank you for choosing Goshen Dental Care.', style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.italic, color: PdfColors.grey700)),
                 )
               ],
             );

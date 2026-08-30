@@ -77,7 +77,7 @@ class _AppointmentCardScreenState extends State<AppointmentCardScreen> {
               child: pw.Column(
                 mainAxisAlignment: pw.MainAxisAlignment.center,
                 children: [
-                  pw.Text('Goshens Dental Care', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                  pw.Text('Goshen Dental Care', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
                   pw.SizedBox(height: 10),
                   pw.Text('Appointment Card', style: const pw.TextStyle(fontSize: 18)),
                   pw.SizedBox(height: 30),
@@ -158,7 +158,7 @@ class _AppointmentCardScreenState extends State<AppointmentCardScreen> {
                       Image.asset('assets/images/Goshens_logo.png', height: 60, errorBuilder: (context, error, stackTrace) => Icon(Icons.local_hospital, size: 60, color: AppColors.primary)),
                       const SizedBox(height: 16),
                       Text(
-                        'Goshens Dental Care',
+                        'Goshen Dental Care',
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.ink(context)),
                       ),
                       const SizedBox(height: 32),
@@ -173,8 +173,7 @@ class _AppointmentCardScreenState extends State<AppointmentCardScreen> {
                         style: TextStyle(fontSize: 16, color: AppColors.muted(context)),
                       ),
                       const SizedBox(height: 32),
-                      if (_secureToken != null) ...[
-                        Container(
+                      if (_secureToken != null) ...[\n                        Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -199,8 +198,7 @@ class _AppointmentCardScreenState extends State<AppointmentCardScreen> {
                           textAlign: TextAlign.center,
                           style: TextStyle(color: AppColors.muted(context), fontSize: 13),
                         ),
-                      ] else ...[
-                        Text('QR Code not available yet.', style: TextStyle(color: AppColors.error)),
+                      ] else ...[\n                        Text('QR Code not available yet.', style: TextStyle(color: AppColors.error)),
                         const SizedBox(height: 12),
                         OutlinedButton(
                           onPressed: () {

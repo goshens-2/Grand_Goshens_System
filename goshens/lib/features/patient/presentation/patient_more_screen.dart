@@ -31,7 +31,7 @@ class PatientMoreScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Goshens Dental Care', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18)),
+                      Text('Goshen Dental Care', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18)),
                       SizedBox(height: 4),
                       Text('Your smile, thoughtfully managed.', style: TextStyle(color: Colors.white70)),
                     ],
