@@ -57,6 +57,10 @@ class PrescriptionRepository {
     await _supabase.from('prescriptions').update({'pdf_url': url}).eq('id', id);
   }
 
+  Future<void> deletePrescription(String prescriptionId) async {
+    await _supabase.from('prescriptions').delete().eq('id', prescriptionId);
+  }
+
   Prescription _mapPrescription(Map<String, dynamic> json) {
     return Prescription.fromJson({
       ...json,
