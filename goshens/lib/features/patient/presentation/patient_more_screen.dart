@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/router/route_names.dart';
+import '../../../core/widgets/company_credits.dart';
 import '../../../core/widgets/premium_ui.dart';
 import '../../auth/data/auth_actions.dart';
 
@@ -99,6 +100,8 @@ class PatientMoreScreen extends ConsumerWidget {
             destructive: true,
             onTap: () => confirmAndSignOut(context, ref),
           ),
+          const SizedBox(height: 16),
+          const Center(child: VisionTechnologiesCredit()),
         ],
       ),
     );
