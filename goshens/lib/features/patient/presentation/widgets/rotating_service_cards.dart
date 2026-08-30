@@ -53,8 +53,6 @@ class _RotatingServiceCardsState extends ConsumerState<RotatingServiceCards> wit
     super.didUpdateWidget(oldWidget);
     if (oldWidget.services.length != widget.services.length) {
       _pairIndex = 0;
-      _fadeController.forward(from: 0);
-      widget.onPairChange?.call(_pairIndex);
       _startTimer();
     }
   }
@@ -64,7 +62,7 @@ class _RotatingServiceCardsState extends ConsumerState<RotatingServiceCards> wit
     if (_pairs.length <= 1) return;
     _timer = Timer.periodic(kServiceCardRotateInterval, (_) {
       if (!mounted) return;
-      _fadeController.forward(from: 0);
+      _fadeController.forward(from: 0.0);
       setState(() {
         _pairIndex = (_pairIndex + 1) % _pairs.length;
         widget.onPairChange?.call(_pairIndex);
@@ -81,52 +79,24 @@ class _RotatingServiceCardsState extends ConsumerState<RotatingServiceCards> wit
 
   @override
   Widget build(BuildContext context) {
-    if (widget.services.isEmpty) {
-      return Text('No published services yet.', style: TextStyle(color: AppColors.muted(context)));
+    if (_pairs.isEmpty) {
+      return const SizedBox.shrink();
     }
 
-    final pairs = _pairs;
-    final pair = pairs[_pairIndex % pairs.length];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        FadeTransition(
-          opacity: Tween<double>(begin: 0.6, end: 1.0).animate(
-            CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    final currentPair = _pairs[_pairIndex];
+    return FadeTransition(
+      opacity: _fadeController.drive(Tween<double>(begin: 0.8, end: 1.0)),
+      child: Row(
+        children: [
+          Expanded(
+            child: _ServiceSquareCard(service: currentPair[0]),
           ),
-          child: Row(
-            children: [
-              Expanded(child: _ServiceSquareCard(service: pair[0])),
-              const SizedBox(width: 12),
-              Expanded(
-                child: pair.length > 1
-                    ? _ServiceSquareCard(service: pair[1])
-                    : const SizedBox.shrink(),
-              ),
-            ],
-          ),
-        ),
-        if (pairs.length > 1) ...[
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(pairs.length, (index) {
-              final selected = index == _pairIndex % pairs.length;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: selected ? 24 : 8,
-                height: 8,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: selected ? AppColors.primary : AppColors.hairline(context),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              );
-            }),
+          const SizedBox(width: 12),
+          Expanded(
+            child: currentPair.length > 1 ? _ServiceSquareCard(service: currentPair[1]) : const SizedBox.shrink(),
           ),
         ],
-      ],
+      ),
     );
   }
 }
@@ -166,37 +136,30 @@ class _ServiceSquareCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.hairline(context)),
-                      ),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
                       child: imageUrl != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                imageUrl,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Center(
-                                    child: Icon(
-                                      Icons.medical_services_outlined,
-                                      size: 48,
-                                      color: AppColors.primary,
-                                    ),
-                                  );
-                                },
+                          ? Image.network(
+                              imageUrl,
+                              width: 56,
+                              height: 56,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Icon(
+                                iconForService(service['icon_name'] as String?),
+                                color: AppColors.ink(context),
+                                size: 32,
                               ),
                             )
-                          : Center(
-                              child: Icon(
-                                Icons.medical_services_outlined,
-                                size: 48,
-                                color: AppColors.primary,
-                              ),
+                          : Icon(
+                              iconForService(service['icon_name'] as String?),
+                              color: AppColors.ink(context),
+                              size: 32,
                             ),
                     ),
                   ),
@@ -211,13 +174,13 @@ class _ServiceSquareCard extends ConsumerWidget {
                       fontSize: 16,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Expanded(
                     child: Text(
                       shortServiceDescription(service['description'] as String?),
-                      maxLines: 3,
+                      maxLines: 4,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: AppColors.muted(context), height: 1.35, fontSize: 13),
+                      style: TextStyle(color: AppColors.muted(context), height: 1.35),
                     ),
                   ),
                 ],
