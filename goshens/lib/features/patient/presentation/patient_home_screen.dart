@@ -39,6 +39,8 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
     final upcomingApptAsync = ref.watch(upcomingAppointmentProvider);
     final clinicAsync = ref.watch(clinicSettingsProvider);
     final servicesAsync = ref.watch(publishedServicesProvider);
+    final commentsAsync = ref.watch(approvedHomeCommentsProvider);
+    final unreadCount = ref.watch(unreadNotificationCountProvider);
     final query = _searchController.text.trim().toLowerCase();
 
     return Scaffold(
@@ -77,9 +79,8 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                           final profile = snapshot.data;
                           final name = profile?['full_name'] ?? 'Guest';
                           final initial = name.isNotEmpty ? name[0].toUpperCase() : 'G';
-                          final avatarUrl = ref.read(profileRepositoryProvider)
-                              .publicAvatarUrl(profile?['avatar_path'] as String?);
-                          
+                          final avatarUrl = ref.read(profileRepositoryProvider).publicAvatarUrl(profile?['avatar_path'] as String?);
+
                           return Row(
                             children: [
                               GestureDetector(
@@ -129,21 +130,35 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                     ),
                     Row(
                       children: [
-                        Consumer(
-                          builder: (context, ref, child) {
-                            final count = ref.watch(unreadNotificationCountProvider);
-                            return IconButton(
-                              icon: Badge(
-                                isLabelVisible: count > 0,
-                                label: Text(count.toString()),
-                                child: Icon(Icons.notifications_outlined, color: AppColors.ink(context)),
-                              ),
+                        Stack(
+                          alignment: Alignment.topRight,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.notifications_outlined, color: AppColors.ink(context)),
                               onPressed: () {
                                 DeviceNotifications.instance.initialize();
                                 context.pushNamed(RouteNames.notifications);
                               },
-                            );
-                          },
+                            ),
+                            if (unreadCount > 0)
+                              Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                child: Text(
+                                  unreadCount.toString(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                          ],
                         ),
                         IconButton(
                           icon: Icon(Icons.chat_bubble_outline, color: AppColors.ink(context)),
@@ -166,7 +181,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                   loading: () => const Center(child: CircularProgressIndicator()),
                   error: (e, _) => Text('Error loading appointment: $e'),
                 ),
-                
+
                 const SizedBox(height: 32),
                 TextField(
                   controller: _searchController,
@@ -232,11 +247,28 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                       );
                     }
 
-                    return _RotatingServicesWithComments(services: matches);
+                    return RotatingServiceCards(services: matches);
                   },
                 ),
                 const SizedBox(height: 32),
-                
+                const SectionHeader('What patients say'),
+                commentsAsync.when(
+                  loading: () => const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator())),
+                  error: (error, _) => Text('Comments will appear here after approval.\n$error', style: TextStyle(color: AppColors.muted(context))),
+                  data: (comments) {
+                    if (comments.isEmpty) {
+                      return Text(
+                        'Approved patient comments will show here.',
+                        style: TextStyle(color: AppColors.muted(context)),
+                      );
+                    }
+                    return Column(
+                      children: comments.map((comment) => HomeCommentTile(comment: comment)).toList(),
+                    );
+                  },
+                ),
+                const SizedBox(height: 32),
+
                 // Clinic Info
                 clinicAsync.when(
                   data: (clinic) {
@@ -284,10 +316,10 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-                  onPressed: () {
-                    context.pushNamed(RouteNames.patientServices);
-                  },
-              child: Text('Book Appointment'),
+              onPressed: () {
+                context.pushNamed(RouteNames.patientServices);
+              },
+              child: const Text('Book Appointment'),
             ),
           ],
         ),
@@ -298,7 +330,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
   Widget _buildUpcomingAppointmentCard(BuildContext context, Map<String, dynamic> appt) {
     final serviceName = embeddedName(appt['services'], 'Appointment');
     final status = appt['status'];
-    
+
     String displayDate = appt['requested_date'];
     String displayTime = appt['preferred_period'];
 
@@ -346,7 +378,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                   ),
                   child: Text(
                     status.toString().replaceAll('_', ' ').toUpperCase(),
-                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -362,22 +394,22 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.calendar_today, color: Colors.white70, size: 16),
+                const Icon(Icons.calendar_today, color: Colors.white70, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   displayDate,
-                  style: TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Colors.white),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.access_time, color: Colors.white70, size: 16),
+                const Icon(Icons.access_time, color: Colors.white70, size: 16),
                 const SizedBox(width: 8),
                 Text(
                   displayTime,
-                  style: TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Colors.white),
                 ),
               ],
             ),
@@ -393,7 +425,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                   onPressed: () {
                     context.pushNamed(RouteNames.patientAppointmentCard, extra: appt);
                   },
-                  child: Text('View Appointment Card'),
+                  child: const Text('View Appointment Card'),
                 ),
               ),
             ]
@@ -428,7 +460,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
             const Divider(height: 24),
             Text(
               clinic['clinic_name'] ?? '',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(clinic['address'] ?? '', style: TextStyle(color: AppColors.muted(context))),
@@ -437,91 +469,11 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
             const SizedBox(height: 16),
             OutlinedButton(
               onPressed: () => context.pushNamed(RouteNames.clinicInformation),
-              child: Text('View Clinic Details'),
+              child: const Text('View Clinic Details'),
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _RotatingServicesWithComments extends ConsumerStatefulWidget {
-  const _RotatingServicesWithComments({required this.services});
-
-  final List<Map<String, dynamic>> services;
-
-  @override
-  ConsumerState<_RotatingServicesWithComments> createState() => _RotatingServicesWithCommentsState();
-}
-
-class _RotatingServicesWithCommentsState extends ConsumerState<_RotatingServicesWithComments> {
-  var _pairIndex = 0;
-
-  List<List<Map<String, dynamic>>> get _pairs {
-    final pairs = <List<Map<String, dynamic>>>[];
-    for (var i = 0; i < widget.services.length; i += 2) {
-      pairs.add(widget.services.sublist(i, i + 2 > widget.services.length ? widget.services.length : i + 2));
-    }
-    return pairs;
-  }
-
-  List<String> get _currentServiceIds {
-    final pairs = _pairs;
-    if (pairs.isEmpty) return [];
-    final pair = pairs[_pairIndex % pairs.length];
-    return pair.map((s) => s['id'] as String).toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        RotatingServiceCards(
-          services: widget.services,
-          onPairChange: (index) => setState(() => _pairIndex = index),
-        ),
-        const SizedBox(height: 32),
-        const SectionHeader('What patients say'),
-        const SizedBox(height: 12),
-        _buildCommentsForCurrentPair(),
-      ],
-    );
-  }
-
-  Widget _buildCommentsForCurrentPair() {
-    final commentsAsync = ref.watch(approvedHomeCommentsProvider);
-    final currentServiceIds = _currentServiceIds;
-
-    return commentsAsync.when(
-      loading: () => const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator())),
-      error: (error, _) => Text('Comments will appear here after approval.\n$error', style: TextStyle(color: AppColors.muted(context))),
-      data: (allComments) {
-        // Filter comments for current service pair
-        final pairComments = allComments.where((comment) {
-          final serviceId = comment['service_id'] as String?;
-          return serviceId != null && currentServiceIds.contains(serviceId);
-        }).toList();
-
-        if (pairComments.isEmpty) {
-          return Text(
-            'Approved patient comments will show here.',
-            style: TextStyle(color: AppColors.muted(context)),
-          );
-        }
-
-        return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 500),
-          child: Column(
-            key: ValueKey(currentServiceIds.join(',')),
-            children: pairComments.map((comment) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: HomeCommentTile(comment: comment),
-            )).toList(),
-          ),
-        );
-      },
     );
   }
 }
