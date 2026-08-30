@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/router/route_names.dart';
+import '../../../core/widgets/company_credits.dart';
 import '../../../core/widgets/premium_ui.dart';
 import '../../auth/data/auth_actions.dart';
 
@@ -48,3 +49,18 @@ class AdminMoreScreen extends ConsumerWidget {
             subtitle: 'Visits, patients and clinic statistics',
             onTap: () => context.pushNamed(RouteNames.adminAnalytics),
           ),
+          const SizedBox(height: 8),
+          const SectionHeader('Account'),
+          MenuTile(
+            icon: Icons.logout,
+            title: 'Sign out',
+            destructive: true,
+            onTap: () => confirmAndSignOut(context, ref),
+          ),
+          const SizedBox(height: 16),
+          const Center(child: VisionTechnologiesCredit()),
+        ],
+      ),
+    );
+  }
+}

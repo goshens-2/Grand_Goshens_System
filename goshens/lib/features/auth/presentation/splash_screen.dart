@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/widgets/company_credits.dart';
 import '../../../core/widgets/premium_ui.dart';
 import '../data/auth_controller.dart';
 import '../data/auth_routing_service.dart';
@@ -85,6 +86,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             ),
             const SizedBox(height: 48),
             const CircularProgressIndicator(color: Colors.white),
+            const SizedBox(height: 32),
+            const VisionTechnologiesCredit(),
           ],
         ),
         ),

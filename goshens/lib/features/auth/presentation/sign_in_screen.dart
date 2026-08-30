@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/theme_controller.dart';
+import '../../../core/widgets/company_credits.dart';
 import '../../../core/widgets/premium_ui.dart';
 import '../data/auth_controller.dart';
 import '../data/auth_repository.dart';
@@ -237,6 +238,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
                     label: Text(isDark ? 'Switch to light mode' : 'Switch to dark mode'),
                   ),
+                  const SizedBox(height: 12),
+                  const EngineeredByCredits(),
                 ],
               ),
             ),
