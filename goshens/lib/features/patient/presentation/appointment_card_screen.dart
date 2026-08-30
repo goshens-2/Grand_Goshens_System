@@ -173,7 +173,8 @@ class _AppointmentCardScreenState extends State<AppointmentCardScreen> {
                         style: TextStyle(fontSize: 16, color: AppColors.muted(context)),
                       ),
                       const SizedBox(height: 32),
-                      if (_secureToken != null) ...[\n                        Container(
+                      if (_secureToken != null) ...[
+                        Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -198,7 +199,8 @@ class _AppointmentCardScreenState extends State<AppointmentCardScreen> {
                           textAlign: TextAlign.center,
                           style: TextStyle(color: AppColors.muted(context), fontSize: 13),
                         ),
-                      ] else ...[\n                        Text('QR Code not available yet.', style: TextStyle(color: AppColors.error)),
+                      ] else ...[
+                        Text('QR Code not available yet.', style: TextStyle(color: AppColors.error)),
                         const SizedBox(height: 12),
                         OutlinedButton(
                           onPressed: () {
