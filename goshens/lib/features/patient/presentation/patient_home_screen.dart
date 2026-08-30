@@ -26,7 +26,6 @@ class PatientHomeScreen extends ConsumerStatefulWidget {
 
 class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
   final _searchController = TextEditingController();
-  var _pairIndex = 0;
 
   @override
   void dispose() {
@@ -40,7 +39,6 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
     final upcomingApptAsync = ref.watch(upcomingAppointmentProvider);
     final clinicAsync = ref.watch(clinicSettingsProvider);
     final servicesAsync = ref.watch(publishedServicesProvider);
-    final commentsAsync = ref.watch(approvedHomeCommentsProvider);
     final query = _searchController.text.trim().toLowerCase();
 
     return Scaffold(
