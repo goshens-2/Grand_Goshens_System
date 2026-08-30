@@ -12,9 +12,14 @@ import '../../data/service_visuals.dart';
 const kServiceCardRotateInterval = Duration(seconds: 8);
 
 class RotatingServiceCards extends ConsumerStatefulWidget {
-  const RotatingServiceCards({super.key, required this.services});
+  const RotatingServiceCards({
+    super.key,
+    required this.services,
+    this.onPairChange,
+  });
 
   final List<Map<String, dynamic>> services;
+  final Function(int)? onPairChange;
 
   @override
   ConsumerState<RotatingServiceCards> createState() => _RotatingServiceCardsState();
@@ -49,6 +54,7 @@ class _RotatingServiceCardsState extends ConsumerState<RotatingServiceCards> wit
     if (oldWidget.services.length != widget.services.length) {
       _pairIndex = 0;
       _fadeController.forward(from: 0);
+      widget.onPairChange?.call(_pairIndex);
       _startTimer();
     }
   }
@@ -59,7 +65,10 @@ class _RotatingServiceCardsState extends ConsumerState<RotatingServiceCards> wit
     _timer = Timer.periodic(kServiceCardRotateInterval, (_) {
       if (!mounted) return;
       _fadeController.forward(from: 0);
-      setState(() => _pairIndex = (_pairIndex + 1) % _pairs.length);
+      setState(() {
+        _pairIndex = (_pairIndex + 1) % _pairs.length;
+        widget.onPairChange?.call(_pairIndex);
+      });
     });
   }
 
@@ -83,7 +92,7 @@ class _RotatingServiceCardsState extends ConsumerState<RotatingServiceCards> wit
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FadeTransition(
-          opacity: Tween<double>(begin: 0.7, end: 1.0).animate(
+          opacity: Tween<double>(begin: 0.6, end: 1.0).animate(
             CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
           ),
           child: Row(
