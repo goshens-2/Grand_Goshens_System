@@ -28,9 +28,9 @@ class DeviceNotifications {
     await initialize();
     const details = NotificationDetails(
       android: AndroidNotificationDetails(
-        'goshens_alerts',
-        'Goshens alerts',
-        channelDescription: 'Appointment and comment updates from Goshens Dental Care',
+        'goshen_alerts',
+        'Goshen alerts',
+        channelDescription: 'Appointment and comment updates from Goshen Dental Care',
         importance: Importance.high,
         priority: Priority.high,
       ),

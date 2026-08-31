@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/widgets/premium_ui.dart';
 
 class PrivacyInformationScreen extends StatelessWidget {
@@ -17,9 +18,9 @@ class PrivacyInformationScreen extends StatelessWidget {
           children: [
             const SectionHeader('Privacy policy'),
             const SizedBox(height: 16),
-            const Text(
-              'At Goshens Dental Care, we take your privacy seriously. This privacy policy explains how we collect, use, and protect your personal and medical information.',
-              style: TextStyle(height: 1.6),
+            Text(
+              'At ${AppConstants.appName}, we take your privacy seriously. This privacy policy explains how we collect, use, and protect your personal and medical information.',
+              style: TextStyle(height: 1.6, color: AppColors.ink(context)),
             ),
             const SizedBox(height: 24),
             Text(

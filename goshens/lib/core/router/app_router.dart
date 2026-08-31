@@ -21,6 +21,7 @@ import '../../features/patient/presentation/patient_chat_screen.dart';
 import '../../features/admin/presentation/admin_main_screen.dart';
 import '../../features/admin/presentation/admin_qr_scanner_screen.dart';
 import '../../features/admin/presentation/admin_service_editor_screen.dart';
+import '../../features/admin/presentation/admin_availability_screen.dart';
 import '../../features/admin/presentation/admin_visit_note_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/prescriptions/presentation/admin_prescription_screen.dart';
@@ -251,6 +252,11 @@ GoRouter appRouter(AppRouterRef ref) {
         path: '/admin-appointments',
         name: RouteNames.adminAppointments,
         builder: (context, state) => const AdminAppointmentsScreen(),
+      ),
+      GoRoute(
+        path: '/admin-availability',
+        name: RouteNames.adminAvailability,
+        builder: (context, state) => const AdminAvailabilityScreen(),
       ),
       GoRoute(
         path: '/admin-visit-note',

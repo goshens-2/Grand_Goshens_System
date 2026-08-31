@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/widgets/premium_ui.dart';
 import '../../comments/data/comment_repository.dart';
@@ -201,7 +202,7 @@ class _HeroHeader extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Goshens Dental Care',
+                          AppConstants.appName,
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
                         ),
                         SizedBox(height: 4),

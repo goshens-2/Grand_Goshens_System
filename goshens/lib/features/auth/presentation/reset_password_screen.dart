@@ -66,7 +66,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   const Center(child: GoshensLogo(size: 72, glow: true)),
                   const SizedBox(height: 24),
                   Text(
-                    'Choose a new password for your Goshens account.',
+                    'Choose a new password for your Goshen account.',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.muted(context)),
                   ),

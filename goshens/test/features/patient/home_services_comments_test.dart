@@ -9,7 +9,7 @@ void main() {
         shortServiceDescription('A' * 200).endsWith('…'),
         isTrue,
       );
-      expect(shortServiceDescription(null), 'Quality dental care at Goshens.');
+      expect(shortServiceDescription(null), 'Quality dental care at Goshen.');
     });
 
     test('collects cover and gallery image paths', () {

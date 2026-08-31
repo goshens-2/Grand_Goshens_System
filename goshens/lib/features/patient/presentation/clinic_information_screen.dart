@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/widgets/premium_ui.dart';
 import '../data/clinic_repository.dart';
 
@@ -36,7 +37,7 @@ class ClinicInformationScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(child: Text('Could not load clinic details.\n$error')),
         data: (clinic) {
-          final name = clinic?['clinic_name'] as String? ?? 'Goshens Dental Care';
+          final name = clinic?['clinic_name'] as String? ?? AppConstants.appName;
           final tagline = clinic?['tagline'] as String? ?? 'Creating Perfect Smiles';
           final address = clinic?['address'] as String? ?? 'Kampala, Uganda';
           final phone = clinic?['phone'] as String? ?? '';

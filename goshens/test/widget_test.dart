@@ -7,12 +7,12 @@ void main() {
       const MaterialApp(
         home: Scaffold(
           body: Center(
-            child: Text('Goshens Dental Care'),
+            child: Text('Goshen Dental Care'),
           ),
         ),
       ),
     );
 
-    expect(find.text('Goshens Dental Care'), findsOneWidget);
+    expect(find.text('Goshen Dental Care'), findsOneWidget);
   });
 }

@@ -63,15 +63,8 @@ Future<void> main() async {
 Future<void> _bootstrap() async {
   try {
     await dotenv.load(fileName: '.env');
-  } catch (error) {
-    runApp(
-      ProviderScope(
-        child: _StartupErrorApp(
-          message: 'Could not load environment file (.env).\n$error',
-        ),
-      ),
-    );
-    return;
+  } catch (_) {
+    // Release APKs inject Supabase config via --dart-define-from-file at build time.
   }
 
   if (!EnvConfig.isConfigured) {

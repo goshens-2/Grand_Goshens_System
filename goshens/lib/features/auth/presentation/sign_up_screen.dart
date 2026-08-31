@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/router/route_names.dart';
-import '../../../core/widgets/premium_ui.dart';
 import '../data/auth_controller.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {

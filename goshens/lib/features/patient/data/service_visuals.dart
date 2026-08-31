@@ -57,7 +57,7 @@ List<String> serviceImagePaths(Map<String, dynamic> service) {
 
 String shortServiceDescription(String? description, {int maxChars = 90}) {
   final text = (description ?? '').trim();
-  if (text.isEmpty) return 'Quality dental care at Goshens.';
+  if (text.isEmpty) return 'Quality dental care at Goshen.';
   if (text.length <= maxChars) return text;
   return '${text.substring(0, maxChars).trimRight()}…';
 }

@@ -26,6 +26,8 @@ google-services.json
 # Release binaries (rebuild from source)
 *.apk
 *.aab
+!releases/
+!releases/*.apk
 *.ipa
 *.symbols
 *.map.json

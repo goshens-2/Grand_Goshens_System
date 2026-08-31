@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/widgets/company_credits.dart';
 import '../../../core/widgets/premium_ui.dart';
@@ -32,7 +33,10 @@ class AdminMoreScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Goshen Dental Care', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18)),
+                      Text(
+                        AppConstants.appName,
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
+                      ),
                       SizedBox(height: 4),
                       Text('Everything you need to run the practice.', style: TextStyle(color: Colors.white70)),
                     ],
@@ -49,8 +53,53 @@ class AdminMoreScreen extends ConsumerWidget {
             subtitle: 'Visits, patients and clinic statistics',
             onTap: () => context.pushNamed(RouteNames.adminAnalytics),
           ),
+          MenuTile(
+            icon: Icons.schedule,
+            title: 'Availability',
+            subtitle: 'Working hours and exceptions',
+            onTap: () => context.pushNamed(RouteNames.adminAvailability),
+          ),
+          MenuTile(
+            icon: Icons.people_outline,
+            title: 'Patients',
+            subtitle: 'Profiles, history and chat',
+            onTap: () => context.pushNamed(RouteNames.adminPatientsList),
+          ),
+          MenuTile(
+            icon: Icons.medication_outlined,
+            title: 'Write prescription',
+            subtitle: 'From today’s visits or a patient record',
+            onTap: () => context.pushNamed(RouteNames.adminPrescription),
+          ),
+          const SizedBox(height: 8),
+          const SectionHeader('Engagement'),
+          MenuTile(
+            icon: Icons.chat_bubble_outline,
+            title: 'Patient messages',
+            subtitle: 'WhatsApp-style clinic chat',
+            onTap: () => context.pushNamed(RouteNames.adminChats),
+          ),
+          MenuTile(
+            icon: Icons.rate_review_outlined,
+            title: 'Patient comments',
+            subtitle: 'Approve testimonials before they go live',
+            onTap: () => context.pushNamed(RouteNames.adminComments),
+          ),
           const SizedBox(height: 8),
           const SectionHeader('Account'),
+          MenuTile(
+            icon: Icons.settings_outlined,
+            title: 'Clinic settings',
+            subtitle: 'Name, address, phone and hours',
+            onTap: () => context.pushNamed(RouteNames.adminClinicSettings),
+          ),
+          MenuTile(
+            icon: Icons.manage_accounts_outlined,
+            title: 'Account settings',
+            subtitle: 'Email and password',
+            onTap: () => context.pushNamed(RouteNames.accountSettings),
+          ),
+          const ThemeModeTile(),
           MenuTile(
             icon: Icons.logout,
             title: 'Sign out',

@@ -28,7 +28,6 @@ class _AdminPrescriptionScreenState extends ConsumerState<AdminPrescriptionScree
 
   Map<String, dynamic>? _selectedAppointment;
   bool _isGenerating = false;
-  var _tabIndex = 0;
 
   String? get _patientId => widget.patientContext?['patientId'] as String?;
   String get _patientName => widget.patientContext?['patientName'] as String? ?? 'Patient';
@@ -76,7 +75,7 @@ class _AdminPrescriptionScreenState extends ConsumerState<AdminPrescriptionScree
       final clinic = ref.read(clinicSettingsProvider).asData?.value;
       final doctorName = (clinic?['dentist_name'] as String?)?.trim().isNotEmpty == true
           ? clinic!['dentist_name'] as String
-          : 'Dr. Goshens';
+          : 'Dr. Goshen';
 
       final repository = ref.read(prescriptionRepositoryProvider);
       final prescription = await repository.createPrescription(
@@ -162,7 +161,6 @@ class _AdminPrescriptionScreenState extends ConsumerState<AdminPrescriptionScree
   @override
   Widget build(BuildContext context) {
     ref.watch(clinicSettingsProvider);
-    final avatarUrl = ref.read(profileRepositoryProvider).publicAvatarUrl(_avatarPath);
     final lockedToPatient = _patientId != null;
 
     return DefaultTabController(
@@ -172,9 +170,8 @@ class _AdminPrescriptionScreenState extends ConsumerState<AdminPrescriptionScree
           title: Text(lockedToPatient ? 'Write prescription' : 'Prescriptions'),
           bottom: lockedToPatient
               ? null
-              : TabBar(
-                  onTap: (index) => setState(() => _tabIndex = index),
-                  tabs: const [
+              : const TabBar(
+                  tabs: [
                     Tab(text: 'Write new'),
                     Tab(text: 'Existing'),
                   ],

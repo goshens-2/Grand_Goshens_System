@@ -274,7 +274,7 @@ class _ClinicChatScreenState extends ConsumerState<ClinicChatScreen> {
   @override
   Widget build(BuildContext context) {
     final peerUrl = ref.read(profileRepositoryProvider).publicAvatarUrl(widget.peerAvatarPath);
-    final title = widget.title ?? 'Goshens Clinic';
+    final title = widget.title ?? 'Goshen Clinic';
 
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));

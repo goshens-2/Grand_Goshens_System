@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/premium_ui.dart';
 import '../data/clinic_settings_repository.dart';
 import '../../patient/data/clinic_repository.dart';
