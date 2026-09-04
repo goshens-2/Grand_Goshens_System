@@ -66,6 +66,15 @@ class AdminServiceRepository {
     await _supabase.from('services').update(updates).eq('id', id);
   }
 
+  /// Prices are managed from the "Doctor's use only" screen and are used to
+  /// calculate the remaining balance during QR-scan payments.
+  Future<void> updateServicePrice({required String id, required num price}) async {
+    await _supabase.from('services').update({
+      'price': price,
+      'updated_at': DateTime.now().toIso8601String(),
+    }).eq('id', id);
+  }
+
   Future<String> uploadServiceImage({
     required String serviceId,
     required Uint8List bytes,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
@@ -81,12 +82,12 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: StatCard(
-                              label: "Today's visits",
-                              value: loading ? '—' : '${today.length}',
-                              icon: Icons.event_available_outlined,
-                              color: AppColors.primary,
-                              onTap: () => context.pushNamed(RouteNames.adminAppointments),
+                            child: _TodayCard(
+                              count: loading ? null : today.length,
+                              onTap: () => context.pushNamed(
+                                RouteNames.adminAppointments,
+                                extra: const {'initialTab': 'today'},
+                              ),
                             ),
                           ),
                         ],
@@ -138,20 +139,6 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                                 onChanged: () => setState(() => _boardFuture = _loadBoard()),
                               ),
                             )),
-                      const SizedBox(height: 24),
-                      SectionHeader(
-                        "Today's schedule",
-                        actionLabel: 'Open',
-                        onAction: () => context.pushNamed(RouteNames.adminAppointments),
-                      ),
-                      if (!loading && today.isEmpty)
-                        const _SoftEmpty(icon: Icons.calendar_today_outlined, title: 'No visits today', message: 'Approved appointments will appear here.')
-                      else
-                        ...today.map((appt) => _TodayVisitCard(
-                              appointment: appt,
-                              time: _formatAppointmentTime(appt['final_start_at']),
-                              onTap: () => context.pushNamed(RouteNames.adminVisitNote, extra: appt),
-                            )),
                     ]),
                   ),
                 ),
@@ -161,16 +148,6 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         ),
       ),
     );
-  }
-
-  String _formatAppointmentTime(dynamic value) {
-    if (value == null) return 'TBD';
-    final dateTime = value is DateTime ? value : DateTime.tryParse(value.toString());
-    if (dateTime == null) return 'TBD';
-    final local = dateTime.toLocal();
-    final hour = local.hour.toString().padLeft(2, '0');
-    final minute = local.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
   }
 }
 
@@ -213,6 +190,16 @@ class _HeroHeader extends StatelessWidget {
                       ],
                     ),
                   ),
+                  Material(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    shape: const CircleBorder(),
+                    child: IconButton(
+                      tooltip: 'Add patient',
+                      onPressed: () => context.pushNamed(RouteNames.adminAddPatientDetails),
+                      icon: const Icon(Icons.add, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
                   IconButton(
                     onPressed: () {
                       DeviceNotifications.instance.initialize();
@@ -322,61 +309,51 @@ class _PendingRequestCard extends StatelessWidget {
   }
 }
 
-class _TodayVisitCard extends StatelessWidget {
-  const _TodayVisitCard({required this.appointment, required this.time, required this.onTap});
+class _TodayCard extends StatelessWidget {
+  const _TodayCard({required this.count, required this.onTap});
 
-  final Map<String, dynamic> appointment;
-  final String time;
+  final int? count;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final name = appointment['profiles']?['full_name'] ?? 'Unknown';
-    final service = appointment['services']?['name'] ?? 'Service';
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: AppColors.card(context),
+    final dateLabel = DateFormat('EEE, d MMM').format(DateTime.now());
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.hairline(context)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 58,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(time, style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.ink(context))),
-                      Text('IN', style: TextStyle(fontSize: 10, color: AppColors.muted(context), fontWeight: FontWeight.w700)),
-                    ],
-                  ),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.hairline(context)),
+            boxShadow: const [
+              BoxShadow(color: AppColors.cardShadow, blurRadius: 18, offset: Offset(0, 8)),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(name.toString(), style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.ink(context))),
-                      const SizedBox(height: 4),
-                      Text(service.toString(), style: TextStyle(color: AppColors.muted(context))),
-                    ],
-                  ),
-                ),
-                StatusPill.fromAppointment(appointment['status'] as String?),
-              ],
-            ),
+                child: Icon(Icons.event_available_outlined, color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                count == null ? '—' : '$count',
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface),
+              ),
+              const SizedBox(height: 4),
+              Text('Today', style: TextStyle(color: AppColors.muted(context), fontWeight: FontWeight.w600)),
+              const SizedBox(height: 2),
+              Text(dateLabel, style: TextStyle(color: AppColors.ink(context), fontWeight: FontWeight.w700, fontSize: 12)),
+            ],
           ),
         ),
       ),

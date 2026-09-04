@@ -37,4 +37,11 @@ class RouteNames {
   static const adminComments = 'admin_comments';
   static const adminChats = 'admin_chats';
   static const adminAnalytics = 'admin_analytics';
+  static const adminAddPatientDetails = 'admin_add_patient_details';
+  static const adminAddPatientCredentials = 'admin_add_patient_credentials';
+  static const adminDoctorPricing = 'admin_doctor_pricing';
+  static const adminAnalyticsGroup = 'admin_analytics_group';
+  static const adminEnrolledSearch = 'admin_enrolled_search';
+  static const adminRecords = 'admin_records';
+  static const adminPaymentRecords = 'admin_payment_records';
 }

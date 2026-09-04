@@ -38,12 +38,14 @@ class PatientVisitSummary {
     required this.visitCount,
     required this.visits,
     this.phone,
+    this.email,
     this.lastVisitAt,
   });
 
   final String patientId;
   final String name;
   final String? phone;
+  final String? email;
   final int visitCount;
   final DateTime? lastVisitAt;
   final List<ClinicVisit> visits;
@@ -63,6 +65,18 @@ class NamedCount {
   final int count;
 }
 
+/// The analytics cards on the More/Analytics screen that drill down into a
+/// grouped patient list. Each group only shows patients that belong to it.
+enum AnalyticsGroup {
+  enrolled,
+  clinicVisits,
+  pendingRequests,
+  upcoming,
+  noShows,
+  cancelled,
+  docRegistered,
+}
+
 class ClinicAnalyticsSnapshot {
   const ClinicAnalyticsSnapshot({
     required this.enrolledPatients,
@@ -73,10 +87,12 @@ class ClinicAnalyticsSnapshot {
     required this.upcomingScheduled,
     required this.noShows,
     required this.cancelled,
+    required this.docRegisteredPatients,
     required this.visitsByService,
     required this.appointmentsByStatus,
     required this.visitsLast14Days,
     required this.patients,
+    required this.groupedPatients,
   });
 
   final int enrolledPatients;
@@ -87,10 +103,14 @@ class ClinicAnalyticsSnapshot {
   final int upcomingScheduled;
   final int noShows;
   final int cancelled;
+  final int docRegisteredPatients;
   final List<NamedCount> visitsByService;
   final List<NamedCount> appointmentsByStatus;
   final List<DayCount> visitsLast14Days;
   final List<PatientVisitSummary> patients;
+  final Map<AnalyticsGroup, List<PatientVisitSummary>> groupedPatients;
+
+  List<PatientVisitSummary> patientsFor(AnalyticsGroup group) => groupedPatients[group] ?? const [];
 }
 
 class ClinicAnalyticsCalculator {
@@ -183,6 +203,7 @@ class ClinicAnalyticsCalculator {
         patientId: id,
         name: profile['full_name']?.toString() ?? 'Patient',
         phone: profile['phone']?.toString(),
+        email: profile['email']?.toString(),
         visitCount: patientVisits.length,
         lastVisitAt: patientVisits.isEmpty ? null : patientVisits.first.visitedAt,
         visits: patientVisits,
@@ -208,6 +229,38 @@ class ClinicAnalyticsCalculator {
           visits: visitsForPatient,
         ),
       );
+    }
+
+    final patientRowsById = <String, PatientVisitSummary>{
+      for (final row in patientRows) row.patientId: row,
+    };
+    final profileById = <String, Map<String, dynamic>>{
+      for (final profile in patients)
+        if (profile['id'] != null) profile['id'].toString(): profile,
+    };
+
+    PatientVisitSummary summaryForAppointment(Map<String, dynamic> appointment) {
+      final id = appointment['patient_id']?.toString() ?? '';
+      final existing = patientRowsById[id];
+      if (existing != null) return existing;
+      return PatientVisitSummary(
+        patientId: id,
+        name: _nestedName(appointment['profiles'], 'full_name', 'Patient'),
+        phone: _nestedPhone(appointment['profiles']),
+        visitCount: 0,
+        visits: const [],
+      );
+    }
+
+    List<PatientVisitSummary> groupFromAppointments(Iterable<Map<String, dynamic>> rows) {
+      final byId = <String, PatientVisitSummary>{};
+      for (final row in rows) {
+        final summary = summaryForAppointment(row);
+        byId[summary.patientId] = summary;
+      }
+      final result = byId.values.toList()
+        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      return result;
     }
 
     final serviceCounts = <String, int>{};
@@ -239,26 +292,75 @@ class ClinicAnalyticsCalculator {
       last14.add(DayCount(day: day, count: count));
     }
 
-    int countStatus(Set<String> statuses) {
-      return appointments.where((row) => statuses.contains(row['status'])).length;
+    bool isPendingRow(Map<String, dynamic> row) => row['status'] == 'pending_review';
+    bool isNoShowRow(Map<String, dynamic> row) => row['status'] == 'no_show';
+    bool isCancelledRow(Map<String, dynamic> row) => row['status'] == 'cancelled' || row['status'] == 'rejected';
+
+    final tomorrow = today.add(const Duration(days: 1));
+    DateTime? appointmentDay(Map<String, dynamic> row) {
+      final finalStart = parseTime(row['final_start_at']);
+      if (finalStart != null) return DateTime(finalStart.year, finalStart.month, finalStart.day);
+      final requested = row['requested_date']?.toString();
+      if (requested != null && requested.isNotEmpty) {
+        final parsed = DateTime.tryParse(requested);
+        if (parsed != null) return DateTime(parsed.year, parsed.month, parsed.day);
+      }
+      return null;
     }
 
+    bool isUpcomingTomorrowRow(Map<String, dynamic> row) {
+      if (!{'approved', 'scheduled'}.contains(row['status'])) return false;
+      final day = appointmentDay(row);
+      return day == tomorrow;
+    }
+
+    final pendingRows = appointments.where(isPendingRow).toList();
+    final upcomingRows = appointments.where(isUpcomingTomorrowRow).toList();
+    final noShowRows = appointments.where(isNoShowRow).toList();
+    final cancelledRows = appointments.where(isCancelledRow).toList();
+
+    bool isEnrolledGoingForward(Map<String, dynamic> profile) {
+      return (profile['registration_source']?.toString() ?? 'self') != 'legacy';
+    }
+
+    bool isDocRegistered(Map<String, dynamic> profile) {
+      return profile['registration_source']?.toString() == 'doctor';
+    }
+
+    final enrolledPatientRows = patientRows
+        .where((row) => isEnrolledGoingForward(profileById[row.patientId] ?? const {}))
+        .toList();
+    final docRegisteredRows = patientRows
+        .where((row) => isDocRegistered(profileById[row.patientId] ?? const {}))
+        .toList();
+    final clinicVisitRows = patientRows.where((row) => row.visitCount > 0).toList();
+
     return ClinicAnalyticsSnapshot(
-      enrolledPatients: patients.length,
+      enrolledPatients: enrolledPatientRows.length,
       totalVisits: visits.length,
       uniqueVisitors: byPatient.length,
       visitsToday: visits.where((visit) {
         final local = DateTime(visit.visitedAt.year, visit.visitedAt.month, visit.visitedAt.day);
         return local == today;
       }).length,
-      pendingRequests: countStatus({'pending_review'}),
-      upcomingScheduled: countStatus({'approved', 'scheduled'}),
-      noShows: countStatus({'no_show'}),
-      cancelled: countStatus({'cancelled', 'rejected'}),
+      pendingRequests: pendingRows.length,
+      upcomingScheduled: upcomingRows.length,
+      noShows: noShowRows.length,
+      cancelled: cancelledRows.length,
+      docRegisteredPatients: docRegisteredRows.length,
       visitsByService: serviceRows,
       appointmentsByStatus: statusRows,
       visitsLast14Days: last14,
       patients: patientRows,
+      groupedPatients: {
+        AnalyticsGroup.enrolled: enrolledPatientRows,
+        AnalyticsGroup.clinicVisits: clinicVisitRows,
+        AnalyticsGroup.pendingRequests: groupFromAppointments(pendingRows),
+        AnalyticsGroup.upcoming: groupFromAppointments(upcomingRows),
+        AnalyticsGroup.noShows: groupFromAppointments(noShowRows),
+        AnalyticsGroup.cancelled: groupFromAppointments(cancelledRows),
+        AnalyticsGroup.docRegistered: docRegisteredRows,
+      },
     );
   }
 }

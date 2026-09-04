@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/premium_ui.dart';
-import '../../admin/data/admin_appointment_repository.dart';
+import '../../admin/data/patient_repository.dart';
 import '../../patient/data/clinic_repository.dart';
 import '../../patient/data/profile_repository.dart';
 import '../data/pdf_service.dart';
@@ -27,10 +27,12 @@ class _AdminPrescriptionScreenState extends ConsumerState<AdminPrescriptionScree
   final _instructionsController = TextEditingController();
 
   Map<String, dynamic>? _selectedAppointment;
+  Map<String, dynamic>? _selectedPatient;
+  var _patientSearchQuery = '';
   bool _isGenerating = false;
 
-  String? get _patientId => widget.patientContext?['patientId'] as String?;
-  String get _patientName => widget.patientContext?['patientName'] as String? ?? 'Patient';
+  String? get _patientId => widget.patientContext?['patientId'] as String? ?? _selectedPatient?['id'] as String?;
+  String get _patientName => widget.patientContext?['patientName'] as String? ?? (_selectedPatient?['full_name'] as String? ?? 'Patient');
   String? get _avatarPath => widget.patientContext?['avatarPath'] as String?;
   List<Map<String, dynamic>> get _patientAppointments {
     final raw = widget.patientContext?['appointments'];
@@ -235,39 +237,75 @@ class _AdminPrescriptionScreenState extends ConsumerState<AdminPrescriptionScree
                 ),
               )
             else
-              const SectionHeader('Select a visit'),
+              const SectionHeader('Select a patient'),
             if (!lockedToPatient) ...[
               const SizedBox(height: 4),
-              FutureBuilder(
-                future: ref.read(adminAppointmentRepositoryProvider).getTodayAppointments(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Center(child: CircularProgressIndicator()),
+              if (_selectedPatient != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.hairline(context)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Selected: ${_selectedPatient!['full_name'] ?? 'Patient'}',
+                            style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.ink(context)),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => setState(() => _selectedPatient = null),
+                          child: const Text('Change'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else ...[
+                TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Search patients',
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                  onChanged: (value) => setState(() => _patientSearchQuery = value),
+                ),
+                const SizedBox(height: 8),
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: ref.read(patientRepositoryProvider).getPatients(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    final patients = (snapshot.data ?? [])
+                        .where((p) => matchesQuery(_patientSearchQuery, [p['full_name'], p['phone'], p['email']]))
+                        .toList();
+                    if (patients.isEmpty) {
+                      return const EmptyState(
+                        icon: Icons.person_search_outlined,
+                        title: 'No patients found',
+                        message: 'Try a different name, phone or email.',
+                      );
+                    }
+                    return Column(
+                      children: patients
+                          .map((patient) => ListTile(
+                                title: Text(patient['full_name']?.toString() ?? 'Unknown'),
+                                subtitle: Text(patient['phone']?.toString() ?? ''),
+                                onTap: () => setState(() => _selectedPatient = patient),
+                              ))
+                          .toList(),
                     );
-                  }
-                  final appointments = snapshot.data ?? [];
-                  if (appointments.isEmpty) {
-                    return const EmptyState(
-                      icon: Icons.event_busy_outlined,
-                      title: 'No visits today',
-                      message: 'Open a patient record to write a prescription any time.',
-                    );
-                  }
-                  return DropdownButtonFormField<Map<String, dynamic>>(
-                    initialValue: _selectedAppointment,
-                    decoration: const InputDecoration(labelText: 'Patient appointment'),
-                    items: appointments.map((appt) {
-                      final name = appt['profiles']?['full_name'] ?? 'Unknown';
-                      final service = appt['services']?['name'] ?? '';
-                      return DropdownMenuItem(value: appt, child: Text('$name — $service'));
-                    }).toList(),
-                    onChanged: (val) => setState(() => _selectedAppointment = val),
-                    validator: (val) => val == null ? 'Select an appointment' : null,
-                  );
-                },
-              ),
+                  },
+                ),
+              ],
             ] else if (_patientAppointments.isNotEmpty) ...[
               const SizedBox(height: 16),
               const SectionHeader('Link to a visit (optional)'),

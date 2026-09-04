@@ -38,6 +38,14 @@ import '../../features/patient/presentation/patient_services_screen.dart';
 import '../../features/patient/presentation/service_detail_screen.dart';
 import '../../features/admin/presentation/admin_comments_screen.dart';
 import '../../features/admin/presentation/admin_analytics_screen.dart';
+import '../../features/admin/presentation/admin_analytics_group_screen.dart';
+import '../../features/admin/presentation/admin_doctor_pricing_screen.dart';
+import '../../features/admin/presentation/admin_enrolled_search_screen.dart';
+import '../../features/admin/presentation/admin_records_screen.dart';
+import '../../features/admin/presentation/admin_payment_records_screen.dart';
+import '../../features/admin/presentation/admin_add_patient_details_screen.dart';
+import '../../features/admin/presentation/admin_add_patient_credentials_screen.dart';
+import '../../features/admin/data/clinic_analytics.dart';
 import '../../features/chat/presentation/admin_chat_inbox_screen.dart';
 
 part 'app_router.g.dart';
@@ -251,7 +259,10 @@ GoRouter appRouter(AppRouterRef ref) {
       GoRoute(
         path: '/admin-appointments',
         name: RouteNames.adminAppointments,
-        builder: (context, state) => const AdminAppointmentsScreen(),
+        builder: (context, state) {
+          final extra = asStringKeyedMap(state.extra);
+          return AdminAppointmentsScreen(initialTab: extra?['initialTab'] as String?);
+        },
       ),
       GoRoute(
         path: '/admin-availability',
@@ -293,6 +304,56 @@ GoRouter appRouter(AppRouterRef ref) {
         path: '/admin-analytics',
         name: RouteNames.adminAnalytics,
         builder: (context, state) => const AdminAnalyticsScreen(),
+      ),
+      GoRoute(
+        path: '/admin-analytics-group',
+        name: RouteNames.adminAnalyticsGroup,
+        builder: (context, state) {
+          final extra = state.extra;
+          if (extra is! Map || extra['patients'] is! List<PatientVisitSummary>) {
+            return const AdminAnalyticsScreen();
+          }
+          return AdminAnalyticsGroupScreen(
+            title: extra['title']?.toString() ?? 'Patients',
+            patients: extra['patients'] as List<PatientVisitSummary>,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/admin-doctor-pricing',
+        name: RouteNames.adminDoctorPricing,
+        builder: (context, state) => const AdminDoctorPricingScreen(),
+      ),
+      GoRoute(
+        path: '/admin-enrolled-search',
+        name: RouteNames.adminEnrolledSearch,
+        builder: (context, state) => const AdminEnrolledSearchScreen(),
+      ),
+      GoRoute(
+        path: '/admin-records',
+        name: RouteNames.adminRecords,
+        builder: (context, state) => const AdminRecordsScreen(),
+      ),
+      GoRoute(
+        path: '/admin-payment-records',
+        name: RouteNames.adminPaymentRecords,
+        builder: (context, state) => const AdminPaymentRecordsScreen(),
+      ),
+      GoRoute(
+        path: '/admin-add-patient-details',
+        name: RouteNames.adminAddPatientDetails,
+        builder: (context, state) => const AdminAddPatientDetailsScreen(),
+      ),
+      GoRoute(
+        path: '/admin-add-patient-credentials',
+        name: RouteNames.adminAddPatientCredentials,
+        builder: (context, state) {
+          final details = asStringKeyedMap(state.extra);
+          if (details == null) {
+            return const AdminAddPatientDetailsScreen();
+          }
+          return AdminAddPatientCredentialsScreen(patientDetails: details);
+        },
       ),
       GoRoute(
         path: '/privacy-information',
