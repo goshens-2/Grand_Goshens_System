@@ -10,7 +10,9 @@ import '../data/admin_appointment_repository.dart';
 import 'appointment_review_sheet.dart';
 
 class AdminAppointmentsScreen extends ConsumerStatefulWidget {
-  const AdminAppointmentsScreen({super.key});
+  const AdminAppointmentsScreen({super.key, this.initialTab});
+
+  final String? initialTab;
 
   @override
   ConsumerState<AdminAppointmentsScreen> createState() => _AdminAppointmentsScreenState();
@@ -23,7 +25,8 @@ class _AdminAppointmentsScreenState extends ConsumerState<AdminAppointmentsScree
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    final startIndex = widget.initialTab == 'today' ? 1 : (widget.initialTab == 'all' ? 2 : 0);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: startIndex);
   }
 
   @override

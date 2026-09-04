@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/router/route_names.dart';
 import '../../../core/widgets/premium_ui.dart';
 import '../data/clinic_analytics.dart';
 import '../data/clinic_analytics_repository.dart';
-import 'analytics_charts.dart';
 
 class AdminAnalyticsScreen extends ConsumerStatefulWidget {
   const AdminAnalyticsScreen({super.key});
@@ -17,7 +18,6 @@ class AdminAnalyticsScreen extends ConsumerStatefulWidget {
 
 class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
   late Future<ClinicAnalyticsSnapshot> _future;
-  var _query = '';
 
   @override
   void initState() {
@@ -30,6 +30,19 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
       _future = ref.read(clinicAnalyticsRepositoryProvider).loadSnapshot();
     });
     await _future;
+  }
+
+  void _openGroup(String title, List<PatientVisitSummary> patients) {
+    context.pushNamed(
+      RouteNames.adminAnalyticsGroup,
+      extra: {'title': title, 'patients': patients},
+    );
+  }
+
+  void _openClinicHistory(List<PatientVisitSummary> patients) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => _ClinicHistoryScreen(patients: patients)),
+    );
   }
 
   @override
@@ -51,9 +64,6 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
           }
 
           final data = snapshot.data!;
-          final patients = data.patients.where((patient) {
-            return matchesQuery(_query, [patient.name, patient.phone, '${patient.visitCount}']);
-          }).toList();
 
           return RefreshIndicator(
             color: AppColors.primary,
@@ -74,6 +84,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                         value: '${data.enrolledPatients}',
                         icon: Icons.groups_outlined,
                         color: AppColors.primary,
+                        onTap: () => context.pushNamed(RouteNames.adminEnrolledSearch),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -83,28 +94,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                         value: '${data.totalVisits}',
                         icon: Icons.qr_code_scanner,
                         color: AppColors.secondary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: StatCard(
-                        label: 'Checked in today',
-                        value: '${data.visitsToday}',
-                        icon: Icons.today_outlined,
-                        color: AppColors.accent,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: StatCard(
-                        label: 'Patients seen',
-                        value: '${data.uniqueVisitors}',
-                        icon: Icons.repeat,
-                        color: AppColors.gold,
+                        onTap: () => _openGroup('Clinic visits', data.patientsFor(AnalyticsGroup.clinicVisits)),
                       ),
                     ),
                   ],
@@ -118,6 +108,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                         value: '${data.pendingRequests}',
                         icon: Icons.hourglass_top_rounded,
                         color: AppColors.warning,
+                        onTap: () => _openGroup('Pending requests', data.patientsFor(AnalyticsGroup.pendingRequests)),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -127,6 +118,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                         value: '${data.upcomingScheduled}',
                         icon: Icons.event_available_outlined,
                         color: AppColors.info,
+                        onTap: () => _openGroup('Upcoming', data.patientsFor(AnalyticsGroup.upcoming)),
                       ),
                     ),
                   ],
@@ -140,6 +132,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                         value: '${data.noShows}',
                         icon: Icons.person_off_outlined,
                         color: AppColors.error,
+                        onTap: () => _openGroup('No-shows', data.patientsFor(AnalyticsGroup.noShows)),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -149,60 +142,81 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                         value: '${data.cancelled}',
                         icon: Icons.cancel_outlined,
                         color: AppColors.textSecondary,
+                        onTap: () => _openGroup('Cancelled / rejected', data.patientsFor(AnalyticsGroup.cancelled)),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                const SectionHeader('Visits — last 14 days'),
-                _ChartCard(
-                  child: AnalyticsBarChart(days: data.visitsLast14Days),
-                ),
-                const SizedBox(height: 20),
-                const SectionHeader('Services taken'),
-                _ChartCard(
-                  child: data.visitsByService.isEmpty
-                      ? EmptyState(
-                          icon: Icons.medical_services_outlined,
-                          title: 'No check-ins yet',
-                          message: 'Scan a patient QR card to start tracking visits by service.',
-                        )
-                      : AnalyticsDonutChart(slices: data.visitsByService),
-                ),
-                const SizedBox(height: 20),
-                const SectionHeader('Appointment mix'),
-                _ChartCard(
-                  child: data.appointmentsByStatus.isEmpty
-                      ? EmptyState(
-                          icon: Icons.pie_chart_outline,
-                          title: 'No appointments yet',
-                          message: 'Bookings will appear here as patients request visits.',
-                        )
-                      : AnalyticsDonutChart(slices: data.appointmentsByStatus),
+                const SizedBox(height: 12),
+                StatCard(
+                  label: 'Doc registered patients',
+                  value: '${data.docRegisteredPatients}',
+                  icon: Icons.badge_outlined,
+                  color: AppColors.gold,
+                  onTap: () => _openGroup('Doc registered patients', data.patientsFor(AnalyticsGroup.docRegistered)),
                 ),
                 const SizedBox(height: 24),
-                const SectionHeader('Patient visit history'),
-                ListSearchBar(
-                  hint: 'Search patients',
-                  onChanged: (value) => setState(() => _query = value),
+                FilledButton.icon(
+                  onPressed: () => _openClinicHistory(data.patients),
+                  icon: const Icon(Icons.history),
+                  label: const Text('Clinic history'),
                 ),
-                const SizedBox(height: 4),
-                if (patients.isEmpty)
-                  const EmptyState(
-                    icon: Icons.people_outline,
-                    title: 'No matching patients',
-                    message: 'Enrolled patients appear here with their check-in count.',
-                  )
-                else
-                  for (final patient in patients)
-                    _PatientVisitTile(
-                      patient: patient,
-                      onTap: () => _openPatientVisits(context, patient),
-                    ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// All patients with their clinic visit counts — replaces the old inline
+/// "Patient visit history" section with a single, simple button.
+class _ClinicHistoryScreen extends StatefulWidget {
+  const _ClinicHistoryScreen({required this.patients});
+
+  final List<PatientVisitSummary> patients;
+
+  @override
+  State<_ClinicHistoryScreen> createState() => _ClinicHistoryScreenState();
+}
+
+class _ClinicHistoryScreenState extends State<_ClinicHistoryScreen> {
+  var _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final patients = widget.patients.where((patient) {
+      return matchesQuery(_query, [patient.name, patient.phone, patient.email]);
+    }).toList();
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Clinic history')),
+      body: Column(
+        children: [
+          ListSearchBar(
+            hint: 'Search patients',
+            onChanged: (value) => setState(() => _query = value),
+          ),
+          Expanded(
+            child: patients.isEmpty
+                ? const EmptyState(
+                    icon: Icons.people_outline,
+                    title: 'No matching patients',
+                    message: 'Enrolled patients appear here with their check-in count.',
+                  )
+                : ListView(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+                    children: [
+                      for (final patient in patients)
+                        _PatientVisitTile(
+                          patient: patient,
+                          onTap: () => _openPatientVisits(context, patient),
+                        ),
+                    ],
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -223,26 +237,6 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
           },
         );
       },
-    );
-  }
-}
-
-class _ChartCard extends StatelessWidget {
-  const _ChartCard({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.hairline(context)),
-      ),
-      child: child,
     );
   }
 }

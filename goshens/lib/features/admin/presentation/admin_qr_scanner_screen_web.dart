@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../data/admin_appointment_repository.dart';
+import 'admin_qr_payment_dialog.dart';
 
 class AdminQrScannerScreen extends ConsumerStatefulWidget {
   const AdminQrScannerScreen({super.key});
@@ -35,7 +36,8 @@ class _AdminQrScannerScreenState extends ConsumerState<AdminQrScannerScreen> {
 
       if (appointment != null) {
         final appointmentId = appointment['id'];
-        final patientId = appointment['patient_id'];
+        final patientId = appointment['patient_id'] as String;
+        final patientName = appointment['profiles']?['full_name']?.toString() ?? 'Patient';
 
         await ref.read(adminAppointmentRepositoryProvider).updateAppointmentStatus(
               appointmentId,
@@ -51,7 +53,8 @@ class _AdminQrScannerScreenState extends ConsumerState<AdminQrScannerScreen> {
               backgroundColor: AppColors.primary,
             ),
           );
-          context.pop();
+          await showQrPaymentDialog(context, ref, patientId: patientId, patientName: patientName);
+          if (mounted) context.pop();
         }
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

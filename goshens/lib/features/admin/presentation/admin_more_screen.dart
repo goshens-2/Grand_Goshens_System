@@ -54,12 +54,6 @@ class AdminMoreScreen extends ConsumerWidget {
             onTap: () => context.pushNamed(RouteNames.adminAnalytics),
           ),
           MenuTile(
-            icon: Icons.schedule,
-            title: 'Availability',
-            subtitle: 'Working hours and exceptions',
-            onTap: () => context.pushNamed(RouteNames.adminAvailability),
-          ),
-          MenuTile(
             icon: Icons.people_outline,
             title: 'Patients',
             subtitle: 'Profiles, history and chat',
@@ -99,7 +93,14 @@ class AdminMoreScreen extends ConsumerWidget {
             subtitle: 'Email and password',
             onTap: () => context.pushNamed(RouteNames.accountSettings),
           ),
+          const SectionHeader('Appearance'),
           const ThemeModeTile(),
+          MenuTile(
+            icon: Icons.lock_outline,
+            title: "Doctor's use only",
+            subtitle: 'Passcode-protected service pricing',
+            onTap: () => context.pushNamed(RouteNames.adminDoctorPricing),
+          ),
           MenuTile(
             icon: Icons.logout,
             title: 'Sign out',

@@ -80,9 +80,12 @@ class _PatientBookingsScreenState extends ConsumerState<PatientBookingsScreen> w
               .where((a) => a['status'] == 'pending_review')
               .toList();
           
-          final history = allAppointments
-              .where((a) => ['completed', 'rejected', 'cancelled', 'no_show', 'checked_in', 'in_consultation'].contains(a['status']))
-              .toList();
+          final history = allAppointments.where((a) {
+            final id = a['id'];
+            final inUpcoming = upcoming.any((u) => u['id'] == id);
+            final inPending = pending.any((p) => p['id'] == id);
+            return !inUpcoming && !inPending;
+          }).toList();
 
           return Column(
             children: [

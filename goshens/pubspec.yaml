@@ -48,6 +48,7 @@ dependencies:
   printing: ^5.14.3
   path_provider: ^2.1.6
   uuid: ^4.6.0
+  crypto: ^3.0.6
   cached_network_image: ^3.4.1
   flutter_dotenv: ^6.0.1
   url_launcher: ^6.3.2
